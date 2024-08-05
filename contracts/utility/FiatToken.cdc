@@ -93,6 +93,7 @@ pub contract FiatToken: FungibleToken {
         // Create a Vault with the initial totalSupply
         let vault <- create Vault(balance: self.totalSupply)
         self.account.save(<-vault, to: self.VaultStoragePath)
+        self.account.link<&FiatToken.Vault{FungibleToken.Balance}>(self.VaultBalancePubPath, target: self.VaultStoragePath)
  
         let minter <- create Minter()
         self.account.save(<-minter, to: self.MinterStoragePath)

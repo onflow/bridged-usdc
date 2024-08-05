@@ -96,14 +96,30 @@ fun testWrapTokens() {
     Test.assertEqual(250.0, tokensMintedEvent.amount)
 
     // Test that the totalSupply increased by the amount of wrapped tokens
-    let scriptResult = _executeScript(
+    var scriptResult = _executeScript(
         "../transactions/scripts/get_supply.cdc",
         []
     )
     Test.expect(scriptResult, Test.beSucceeded())
 
+    // FiatToken supply should not have decreased
+    scriptResult = _executeScript(
+        "scripts/get_fiattoken_supply.cdc",
+        []
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
+
     let totalSupply = scriptResult.returnValue! as! UFix64
-    Test.assertEqual(250.0, totalSupply)
+    Test.assertEqual(1000.0, totalSupply)
+
+    // Verify the senders old FiatToken balance
+    scriptResult = _executeScript(
+        "scripts/get_fiattoken_balance.cdc",
+        [admin.address]
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
+    var balance = scriptResult.returnValue! as! UFix64
+    Test.assertEqual(1000.0, balance)
 }
 
 access(all)
@@ -136,23 +152,23 @@ fun testTransferTokens() {
     Test.assertEqual(50.0, balance)
 }
 
-// access(all)
-// fun testVaultTypes() {
-//     let scriptResult = _executeScript(
-//         "../transactions/scripts/get_views.cdc",
-//         [recipient.address]
-//     )
-//     Test.expect(scriptResult, Test.beSucceeded())
+access(all)
+fun testGetViews() {
+    let scriptResult = _executeScript(
+        "../transactions/scripts/get_views.cdc",
+        [recipient.address]
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
 
-//     let supportedViews = scriptResult.returnValue! as! [Type]
-//     let expectedViews = [
-//         Type<FungibleTokenMetadataViews.FTView>(),
-//         Type<FungibleTokenMetadataViews.FTDisplay>(),
-//         Type<FungibleTokenMetadataViews.FTVaultData>(),
-//         Type<FungibleTokenMetadataViews.TotalSupply>()
-//     ]
-//     Test.assertEqual(expectedViews, supportedViews)
-// }
+    let supportedViews = scriptResult.returnValue! as! [Type]
+    let expectedViews = [
+        Type<FungibleTokenMetadataViews.FTView>(),
+        Type<FungibleTokenMetadataViews.FTDisplay>(),
+        Type<FungibleTokenMetadataViews.FTVaultData>(),
+        Type<FungibleTokenMetadataViews.TotalSupply>()
+    ]
+    Test.assertEqual(expectedViews, supportedViews)
+}
 
 // // Not able to be fully tested until the bridge config is available on emulator
 // access(all)

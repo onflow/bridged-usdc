@@ -97,9 +97,9 @@ pub contract WrappedFiatToken: FungibleToken {
                     )
                     let medias = MetadataViews.Medias([media])
                     return FungibleTokenMetadataViews.FTDisplay(
-                        name: "Bridged Circle USDC",
-                        symbol: "USDC",
-                        description: "This is the Flow Cadence Bridged version of Flow-EVM USDC",
+                        name: "Bridged Flow USDC",
+                        symbol: "F-USDC",
+                        description: "This is the Flow Cadence Bridged version of Flow-EVM USDC. It part of the Flow protocol and is not owned or controlled by any organization",
                         externalURL: MetadataViews.ExternalURL("https://www.circle.com/en/usdc"),
                         logos: medias,
                         socials: {
@@ -146,7 +146,7 @@ pub contract WrappedFiatToken: FungibleToken {
 
         let vault <- from as! @FiatToken.Vault
 
-        // Get a reference to the signer's stored vault
+        // Get a reference to the contract account's stored Vault
         let fiatTokenVaultRef = self.account.borrow<&FiatToken.Vault>(from: FiatToken.VaultStoragePath)
             ?? panic("Could not borrow reference to the owner's FiatToken Vault!")
 
