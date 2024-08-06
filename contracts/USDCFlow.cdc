@@ -3,9 +3,9 @@ import "MetadataViews"
 import "FungibleTokenMetadataViews"
 import "FiatToken"
 
-pub contract WrappedFiatToken: FungibleToken {
+pub contract USDCFlow: FungibleToken {
 
-    /// Total supply of WrappedFiatTokens in existence
+    /// Total supply of USDCFlows in existence
     pub var totalSupply: UFix64
 
     /// Storage and Public Paths
@@ -49,7 +49,7 @@ pub contract WrappedFiatToken: FungibleToken {
         /// @param from: The Vault resource containing the funds that will be deposited
         ///
         pub fun deposit(from: @FungibleToken.Vault) {
-            let vault <- from as! @WrappedFiatToken.Vault
+            let vault <- from as! @USDCFlow.Vault
             self.balance = self.balance + vault.balance
             emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
             vault.balance = 0.0
@@ -58,11 +58,11 @@ pub contract WrappedFiatToken: FungibleToken {
 
         destroy() {
             if self.balance > 0.0 {
-                WrappedFiatToken.totalSupply = WrappedFiatToken.totalSupply - self.balance
+                USDCFlow.totalSupply = USDCFlow.totalSupply - self.balance
             }
         }
 
-        /// Gets an array of all the Metadata Views implemented by WrappedFiatToken
+        /// Gets an array of all the Metadata Views implemented by USDCFlow
         ///
         /// @return An array of Types defining the implemented views. This value will be used by
         ///         developers to know which parameter to pass to the resolveView() method.
@@ -76,7 +76,7 @@ pub contract WrappedFiatToken: FungibleToken {
             ]
         }
 
-        /// Resolves Metadata Views out of the WrappedFiatToken
+        /// Resolves Metadata Views out of the USDCFlow
         ///
         /// @param view: The Type of the desired view.
         /// @return A structure representing the requested view.
@@ -97,9 +97,9 @@ pub contract WrappedFiatToken: FungibleToken {
                     )
                     let medias = MetadataViews.Medias([media])
                     return FungibleTokenMetadataViews.FTDisplay(
-                        name: "Bridged Flow USDC",
-                        symbol: "F-USDC",
-                        description: "This is the Flow Cadence Bridged version of Flow-EVM USDC. It part of the Flow protocol and is not owned or controlled by any organization",
+                        name: "USDC (Flow)",
+                        symbol: "USDCf",
+                        description: "This fungible token representation of USDC is bridged from Flow EVM.",
                         externalURL: MetadataViews.ExternalURL("https://www.circle.com/en/usdc"),
                         logos: medias,
                         socials: {
@@ -108,19 +108,19 @@ pub contract WrappedFiatToken: FungibleToken {
                     )
                 case Type<FungibleTokenMetadataViews.FTVaultData>():
                     return FungibleTokenMetadataViews.FTVaultData(
-                        storagePath: WrappedFiatToken.VaultStoragePath,
-                        receiverPath: WrappedFiatToken.ReceiverPublicPath,
-                        metadataPath: WrappedFiatToken.VaultPublicPath,
-                        providerPath: /private/wFiatTokenVault,
-                        receiverLinkedType: Type<&WrappedFiatToken.Vault{FungibleToken.Receiver}>(),
-                        metadataLinkedType: Type<&WrappedFiatToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
-                        providerLinkedType: Type<&WrappedFiatToken.Vault{FungibleToken.Provider}>(),
-                        createEmptyVaultFunction: (fun (): @WrappedFiatToken.Vault {
-                            return <-WrappedFiatToken.createEmptyVault()
+                        storagePath: USDCFlow.VaultStoragePath,
+                        receiverPath: USDCFlow.ReceiverPublicPath,
+                        metadataPath: USDCFlow.VaultPublicPath,
+                        providerPath: /private/usdcFlowVault,
+                        receiverLinkedType: Type<&USDCFlow.Vault{FungibleToken.Receiver}>(),
+                        metadataLinkedType: Type<&USDCFlow.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
+                        providerLinkedType: Type<&USDCFlow.Vault{FungibleToken.Provider}>(),
+                        createEmptyVaultFunction: (fun (): @USDCFlow.Vault {
+                            return <-USDCFlow.createEmptyVault()
                         })
                     )
                 case Type<FungibleTokenMetadataViews.TotalSupply>():
-                    return FungibleTokenMetadataViews.TotalSupply(totalSupply: WrappedFiatToken.totalSupply)
+                    return FungibleTokenMetadataViews.TotalSupply(totalSupply: USDCFlow.totalSupply)
             }
             return nil
         }
@@ -137,11 +137,11 @@ pub contract WrappedFiatToken: FungibleToken {
     /// wrapFiatToken
     ///
     /// Provides a way for users to exchange a FiatToken Vault
-    /// for a WrappedFiatToken Vault with the same balance
+    /// for a USDCFlow Vault with the same balance
     pub fun wrapFiatToken(_ from: @FungibleToken.Vault): @Vault {
         post {
             result.balance == before(from.balance):
-                "The WrappedFiatToken Vault that was returned does not have the same balance as the Vault that was deposited!"
+                "The USDCFlow Vault that was returned does not have the same balance as the Vault that was deposited!"
         }
 
         let vault <- from as! @FiatToken.Vault
@@ -163,9 +163,9 @@ pub contract WrappedFiatToken: FungibleToken {
 
     init() {
         self.totalSupply = 0.0
-        self.VaultStoragePath = /storage/wFiatTokenVault
-        self.VaultPublicPath = /public/wFiatTokenMetadata
-        self.ReceiverPublicPath = /public/wFiatTokenReceiver
+        self.VaultStoragePath = /storage/usdcFlowVault
+        self.VaultPublicPath = /public/usdcFlowMetadata
+        self.ReceiverPublicPath = /public/usdcFlowReceiver
 
         // Create the Vault with the total supply of tokens and save it in storage.
         let vault <- create Vault(balance: self.totalSupply)
@@ -180,7 +180,7 @@ pub contract WrappedFiatToken: FungibleToken {
 
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field and the `resolveView` method through the `Balance` interface
-        self.account.link<&WrappedFiatToken.Vault{FungibleToken.Balance}>(
+        self.account.link<&USDCFlow.Vault{FungibleToken.Balance}>(
             self.VaultPublicPath,
             target: self.VaultStoragePath
         )

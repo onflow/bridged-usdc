@@ -1,8 +1,8 @@
 // This script reads the total supply field
-// of the WrappedFiatToken smart contract
+// of the USDCFlow smart contract
 
-import WrappedFiatToken from "WrappedFiatToken"
+import USDCFlow from "USDCFlow"
 
 pub fun main(): UFix64 {
-    return WrappedFiatToken.totalSupply
+    return USDCFlow.totalSupply
 }

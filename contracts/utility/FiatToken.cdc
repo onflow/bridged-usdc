@@ -1,6 +1,6 @@
 import "FungibleToken"
 
-/// Basic FiatToken contract only used for testing WrappedFiatToken
+/// Basic FiatToken contract only used for testing USDCFlow
 
 pub contract FiatToken: FungibleToken {
 

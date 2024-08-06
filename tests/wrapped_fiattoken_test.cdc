@@ -3,7 +3,7 @@ import BlockchainHelpers
 import "test_helpers.cdc"
 import "FungibleToken"
 import "FungibleTokenMetadataViews"
-import "WrappedFiatToken"
+import "USDCFlow"
 import "FiatToken"
 
 access(all) let admin = Test.getAccount(0x0000000000000007)
@@ -49,8 +49,8 @@ fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
-        name: "WrappedFiatToken",
-        path: "../contracts/WrappedFiatToken.cdc",
+        name: "USDCFlow",
+        path: "../contracts/USDCFlow.cdc",
         arguments: []
     )
     Test.expect(err, Test.beNil())
@@ -88,11 +88,11 @@ fun testWrapTokens() {
     Test.expect(txResult, Test.beSucceeded())
 
     // Test that the proper events were emitted
-    var typ = Type<WrappedFiatToken.TokensMinted>()
+    var typ = Type<USDCFlow.TokensMinted>()
     var events = Test.eventsOfType(typ)
     Test.assertEqual(1, events.length)
 
-    let tokensMintedEvent = events[0] as! WrappedFiatToken.TokensMinted
+    let tokensMintedEvent = events[0] as! USDCFlow.TokensMinted
     Test.assertEqual(250.0, tokensMintedEvent.amount)
 
     // Test that the totalSupply increased by the amount of wrapped tokens
@@ -126,7 +126,7 @@ access(all)
 fun testTransferTokens() {
     let txResult = _executeTransaction(
         "../transactions/safe_generic_transfer.cdc",
-        [50.0, recipient.address, "wFiatTokenVault", "wFiatTokenReceiver"],
+        [50.0, recipient.address, "usdcFlowVault", "usdcFlowReceiver"],
         admin
     )
     Test.expect(txResult, Test.beSucceeded())
@@ -175,21 +175,21 @@ fun testGetViews() {
 // fun testTransferMinterToBridge() {
     // var txResult = _executeTransaction(
     //     "transactions/create_cadence_native_token_handler.cdc",
-    //     ["A.0000000000000007.WrappedFiatToken.Vault", "A.0000000000000007.WrappedFiatToken.MinterResource"],
+    //     ["A.0000000000000007.USDCFlow.Vault", "A.0000000000000007.USDCFlow.MinterResource"],
     //     admin
     // )
     // Test.expect(txResult, Test.beSucceeded())
 
     // txResult = _executeTransaction(
     //     "transactions/enable_token_handler.cdc",
-    //     ["A.0000000000000007.WrappedFiatToken.Vault"],
+    //     ["A.0000000000000007.USDCFlow.Vault"],
     //     admin
     // )
     // Test.expect(txResult, Test.beSucceeded())
 
     // deployWithArgs(
-    //     "WrappedFiatTokenMinterToBridge",
-    //     "../contracts/WrappedFiatTokenMinterToBridge.cdc",
+    //     "USDCFlowMinterToBridge",
+    //     "../contracts/USDCFlowMinterToBridge.cdc",
     //     args: [
     //         admin.address
     //     ]

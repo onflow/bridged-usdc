@@ -73,14 +73,14 @@
           "mainnet": "0xb19436aae4d94622"
         }
       },
-    "WrappedFiatToken": {
-      "source": "./contracts/WrappedFiatToken.cdc",
+    "USDCFlow": {
+      "source": "./contracts/USDCFlow.cdc",
       "aliases": {
         "testing": "0x0000000000000007"
       }
     },
-    "WrappedFiatTokenMinterToBridge": {
-        "source": "./contracts/WrappedFiatTokenMinterToBridge.cdc",
+    "USDCFlowMinterToBridge": {
+        "source": "./contracts/USDCFlowMinterToBridge.cdc",
         "aliases": {
           "testing": "0x0000000000000007"
         }
