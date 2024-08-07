@@ -164,8 +164,8 @@ fun testGetViews() {
     let expectedViews = [
         Type<FungibleTokenMetadataViews.FTView>(),
         Type<FungibleTokenMetadataViews.FTDisplay>(),
-        Type<FungibleTokenMetadataViews.FTVaultData>(),
-        Type<FungibleTokenMetadataViews.TotalSupply>()
+        Type<FungibleTokenMetadataViews.FTVaultData>()
+        //Type<FungibleTokenMetadataViews.TotalSupply>()
     ]
     Test.assertEqual(expectedViews, supportedViews)
 }

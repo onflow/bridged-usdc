@@ -25,7 +25,7 @@ so they can build a basic understanding of the programming language.
 | Network       | Contract Address     |
 | ------------- | -------------------- |
 | Previewnet    | Coming Soon |
-| Testnet       | `` |
+| Testnet       | [`0x4516677f8083d680`](https://contractbrowser.com/A.4516677f8083d680.USDCFlow) |
 | Mainnet       | Coming Soon |
 
 This is the contract that defines the Cadence version of Flow USDC. 

@@ -86,8 +86,7 @@ pub contract USDCFlow: FungibleToken {
             return [
                 Type<FungibleTokenMetadataViews.FTView>(),
                 Type<FungibleTokenMetadataViews.FTDisplay>(),
-                Type<FungibleTokenMetadataViews.FTVaultData>(),
-                Type<FungibleTokenMetadataViews.TotalSupply>()
+                Type<FungibleTokenMetadataViews.FTVaultData>()
             ]
         }
 
@@ -134,8 +133,6 @@ pub contract USDCFlow: FungibleToken {
                             return <-USDCFlow.createEmptyVault()
                         })
                     )
-                case Type<FungibleTokenMetadataViews.TotalSupply>():
-                    return FungibleTokenMetadataViews.TotalSupply(totalSupply: USDCFlow.totalSupply)
             }
             return nil
         }
