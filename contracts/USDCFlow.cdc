@@ -3,6 +3,21 @@ import "MetadataViews"
 import "FungibleTokenMetadataViews"
 import "FiatToken"
 
+/// USDCFlow
+///
+/// Defines the Cadence version of bridged Flow USDC. 
+/// Before the Sept 4th, 2024 Crescendo migration, users can send
+/// `FiatToken` vaults to the `USDCFlow.wrapFiatToken()` function
+/// and receive `USDCFlow` vaults back with the exact same balance.
+
+/// After the Crescendo migration, the `USDCFlow` smart contract
+/// will integrate directly with the Flow VM bridge to become
+/// the bridged version of Flow EVM USDC. These tokens will be backed
+/// by real USDC via Flow EVM.
+
+/// This is not the official Circle USDC, only a bridged version
+/// that is still backed by official USDC on the other side of the bridge
+
 pub contract USDCFlow: FungibleToken {
 
     /// Total supply of USDCFlows in existence
