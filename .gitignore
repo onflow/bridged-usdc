@@ -1,4 +1,4 @@
 #.gitignore
 .env
 coverage.json
-testnet-usdc.pkey
+*.pkey
