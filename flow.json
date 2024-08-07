@@ -65,14 +65,22 @@
         "testnet": "0x631e88ae7f1d7c20"
       }
     },
-    "WrappedFiatToken": {
-      "source": "./contracts/FiatToken.cdc",
+    "FiatToken": {
+        "source": "./contracts/utility/FiatToken.cdc",
+        "aliases": {
+          "testing": "0x0000000000000007",
+          "testnet": "0xa983fecbed621163",
+          "mainnet": "0xb19436aae4d94622"
+        }
+      },
+    "USDCFlow": {
+      "source": "./contracts/USDCFlow.cdc",
       "aliases": {
         "testing": "0x0000000000000007"
       }
     },
-    "WrappedFiatTokenMinterToBridge": {
-        "source": "./contracts/WrappedFiatTokenMinterToBridge.cdc",
+    "USDCFlowMinterToBridge": {
+        "source": "./contracts/USDCFlowMinterToBridge.cdc",
         "aliases": {
           "testing": "0x0000000000000007"
         }
