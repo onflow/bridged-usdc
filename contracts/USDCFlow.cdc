@@ -32,7 +32,7 @@ access(all) contract USDCFlow: FungibleToken {
 
     /// The event that is emitted when new tokens are minted
     access(all) event Minted(amount: UFix64, mintedUUID: UInt64)
-    access(all) event Burned(minter: UInt64, amount: UFix64, burntUUID: UInt64)
+    access(all) event Burned(amount: UFix64, burntUUID: UInt64)
 
     access(all) view fun getContractViews(resourceType: Type?): [Type] {
         return [
@@ -51,7 +51,6 @@ access(all) contract USDCFlow: FungibleToken {
                     ftVaultData: self.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
                 )
             case Type<FungibleTokenMetadataViews.FTDisplay>():
-                // Potential TODO: Replace with USDC http file and media type?
                 let media = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
                         url: "https://uploads-ssl.webflow.com/5f734f4dbd95382f4fdfa0ea/66bf87860866d1c10df323e2_USDC_FLOW.svg"
@@ -98,9 +97,11 @@ access(all) contract USDCFlow: FungibleToken {
 
         /// Called when a fungible token is burned via the `Burner.burn()` method
         /// The total supply will only reflect the supply in the Cadence version
-        /// of the FiatToken smart contract
+        /// of the USDCFlow smart contract
         access(contract) fun burnCallback() {
             if self.balance > 0.0 {
+                assert(USDCFlow.totalSupply >= self.balance, message: "Cannot burn more than the total supply")
+                emit Burned(amount: self.balance, burntUUID: self.uuid)
                 USDCFlow.totalSupply = USDCFlow.totalSupply - self.balance
             }
             self.balance = 0.0
@@ -187,10 +188,6 @@ access(all) contract USDCFlow: FungibleToken {
             let toBurn <- vault as! @USDCFlow.Vault
             let amount = toBurn.balance
 
-            assert(USDCFlow.totalSupply >= amount, message: "burning more than total supply")
-
-            emit Burned(minter: self.uuid, amount: amount, burntUUID: toBurn.uuid)
-
             // This function updates USDCFlow.totalSupply
             Burner.burn(<-toBurn)
         }
@@ -206,8 +203,8 @@ access(all) contract USDCFlow: FungibleToken {
                 FlowEVMBridgeConfig.adminPublicPath
             ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
             
-        // sets the FiatToken as the minter resource for all FiatToken bridge requests
-        // prior to transferring the Minter, a TokenHandler will be set for FiatToken during the bridge's initial
+        // sets the USDCFlow as the minter resource for all USDCFlow bridge requests
+        // prior to transferring the Minter, a TokenHandler will be set for USDCFlow during the bridge's initial
         // configuration, setting the stage for this minter to be sent.
         bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
     }
