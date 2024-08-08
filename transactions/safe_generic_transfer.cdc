@@ -9,25 +9,27 @@ import FungibleToken from "FungibleToken"
 transaction(amount: UFix64, to: Address, senderPath: String, receiverPath: String) {
 
     // The Vault resource that holds the tokens that are being transferred
-    let tempVault: @FungibleToken.Vault
+    let tempVault: @{FungibleToken.Vault}
 
     // Borrowed teference receive tokens if receiving account doesn't support the sending token
     let senderReceiverRef: &{FungibleToken.Receiver}
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
         // Get a reference to the signer's stored vault
-        let vaultRef = signer.borrow<&{FungibleToken.Provider}>(from: StoragePath(identifier: senderPath)!)
+        let vaultRef = signer.storage.borrow<auth(FungibleToken.Withdraw) &{FungibleToken.Vault}>(from: StoragePath(identifier: senderPath)!)
 			?? panic("Could not borrow reference to the owner's Vault!")
         
-        self.senderReceiverRef = signer.borrow<&{FungibleToken.Receiver}>(from: StoragePath(identifier: senderPath)!)
+        self.senderReceiverRef = signer.storage.borrow<&{FungibleToken.Receiver}>(from: StoragePath(identifier: senderPath)!)
 			?? panic("Could not borrow {FungibleToken.Receiver} reference to the owner's Vault!")
 
         self.tempVault <- vaultRef.withdraw(amount: amount)
     }
 
     execute {
-        let receiverRef = getAccount(to).getCapability<&{FungibleToken.Receiver}>(PublicPath(identifier: receiverPath)!).borrow()!
+        let receiverRef = getAccount(to).capabilities.get<&{FungibleToken.Receiver}>(PublicPath(identifier: receiverPath)!).borrow()
+            ?? panic("Could not borrow a reference to the receiver's vault")
+
         let supportedVaultTypes = receiverRef.getSupportedVaultTypes()
         // Only transfer tokens when the receiver is willing to receive the targeted FT.
         if supportedVaultTypes.containsKey(self.tempVault.getType()) {

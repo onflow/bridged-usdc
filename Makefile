@@ -1,7 +1,7 @@
 .PHONY: test
 test:
-	flow test --cover --covercode="contracts" tests/*.cdc
+	flow-c1 test --cover --covercode="contracts" tests/*.cdc
 
 .PHONY: ci
 ci:
-	flow test --cover --covercode="contracts" tests/*.cdc
+	flow-c1 test --cover --covercode="contracts" tests/*.cdc
