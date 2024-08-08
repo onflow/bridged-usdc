@@ -21,7 +21,6 @@
 			"source": "./contracts/utility/FiatToken.cdc",
 			"aliases": {
 				"mainnet": "b19436aae4d94622",
-				"testing": "0000000000000007",
 				"testnet": "a983fecbed621163"
 			}
 		},

@@ -4,10 +4,10 @@
 import FungibleToken from "FungibleToken"
 import USDCFlow from "USDCFlow"
 
-pub fun main(address: Address): UFix64 {
+access(all) fun main(address: Address): UFix64 {
     let account = getAccount(address)
-    let vaultRef = account.getCapability(USDCFlow.VaultPublicPath)
-        .borrow<&USDCFlow.Vault{FungibleToken.Balance}>()
+    let vaultRef = account.capabilities.get<&USDCFlow.Vault>(USDCFlow.VaultPublicPath)
+        .borrow()
         ?? panic("Could not borrow Balance reference to the Vault")
 
     return vaultRef.balance

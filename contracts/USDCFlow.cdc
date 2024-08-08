@@ -1,8 +1,9 @@
 import "FungibleToken"
-import "MetadataViews"
 import "FungibleTokenMetadataViews"
-import "FiatToken"
-import "ViewResolver"
+import "MetadataViews"
+import "Burner"
+import "FlowEVMBridgeHandlerInterfaces"
+import "FlowEVMBridgeConfig"
 
 /// USDCFlow
 ///
@@ -19,44 +20,38 @@ import "ViewResolver"
 /// This is not the official Circle USDC, only a bridged version
 /// that is still backed by official USDC on the other side of the bridge
 
-pub contract USDCFlow: FungibleToken, ViewResolver {
+access(all) contract USDCFlow: FungibleToken {
 
     /// Total supply of USDCFlows in existence
-    pub var totalSupply: UFix64
+    access(all) var totalSupply: UFix64
 
     /// Storage and Public Paths
-    pub let VaultStoragePath: StoragePath
-    pub let VaultPublicPath: PublicPath
-    pub let ReceiverPublicPath: PublicPath
-
-    /// The event that is emitted when the contract is created
-    pub event TokensInitialized(initialSupply: UFix64)
-
-    /// The event that is emitted when tokens are withdrawn from a Vault
-    pub event TokensWithdrawn(amount: UFix64, from: Address?)
-
-    /// The event that is emitted when tokens are deposited to a Vault
-    pub event TokensDeposited(amount: UFix64, to: Address?)
+    access(all) let VaultStoragePath: StoragePath
+    access(all) let VaultPublicPath: PublicPath
+    access(all) let ReceiverPublicPath: PublicPath
 
     /// The event that is emitted when new tokens are minted
-    pub event TokensMinted(amount: UFix64, depositedUUID: UInt64, mintedUUID: UInt64)
+    access(all) event Minted(amount: UFix64, mintedUUID: UInt64)
+    access(all) event Burned(minter: UInt64, amount: UFix64, burntUUID: UInt64)
 
-    pub fun getViews(): [Type] {
+    access(all) view fun getContractViews(resourceType: Type?): [Type] {
         return [
             Type<FungibleTokenMetadataViews.FTView>(),
             Type<FungibleTokenMetadataViews.FTDisplay>(),
-            Type<FungibleTokenMetadataViews.FTVaultData>()
+            Type<FungibleTokenMetadataViews.FTVaultData>(),
+            Type<FungibleTokenMetadataViews.TotalSupply>()
         ]
     }
 
-    pub fun resolveView(_ view: Type): AnyStruct? {
-        switch view {
+    access(all) fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? {
+        switch viewType {
             case Type<FungibleTokenMetadataViews.FTView>():
                 return FungibleTokenMetadataViews.FTView(
-                    ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
-                    ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
+                    ftDisplay: self.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
+                    ftVaultData: self.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
                 )
             case Type<FungibleTokenMetadataViews.FTDisplay>():
+                // Potential TODO: Replace with USDC http file and media type?
                 let media = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
                         url: "https://uploads-ssl.webflow.com/5f734f4dbd95382f4fdfa0ea/66bf87860866d1c10df323e2_USDC_FLOW.svg"
@@ -77,53 +72,77 @@ pub contract USDCFlow: FungibleToken, ViewResolver {
                     storagePath: USDCFlow.VaultStoragePath,
                     receiverPath: USDCFlow.ReceiverPublicPath,
                     metadataPath: USDCFlow.VaultPublicPath,
-                    providerPath: /private/usdcFlowVault,
-                    receiverLinkedType: Type<&USDCFlow.Vault{FungibleToken.Receiver}>(),
-                    metadataLinkedType: Type<&USDCFlow.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
-                    providerLinkedType: Type<&USDCFlow.Vault{FungibleToken.Provider}>(),
-                    createEmptyVaultFunction: (fun (): @USDCFlow.Vault {
-                        return <-USDCFlow.createEmptyVault()
+                    receiverLinkedType: Type<&USDCFlow.Vault>(),
+                    metadataLinkedType: Type<&USDCFlow.Vault>(),
+                    createEmptyVaultFunction: (fun(): @{FungibleToken.Vault} {
+                        return <-USDCFlow.createEmptyVault(vaultType: Type<@USDCFlow.Vault>())
                     })
+                )
+            case Type<FungibleTokenMetadataViews.TotalSupply>():
+                return FungibleTokenMetadataViews.TotalSupply(
+                    totalSupply: USDCFlow.totalSupply
                 )
         }
         return nil
     }
 
-    pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
+    access(all) resource Vault: FungibleToken.Vault {
 
         /// The total balance of this vault
-        pub var balance: UFix64
+        access(all) var balance: UFix64
 
         /// Initialize the balance at resource creation time
         init(balance: UFix64) {
             self.balance = balance
         }
 
+        /// Called when a fungible token is burned via the `Burner.burn()` method
+        /// The total supply will only reflect the supply in the Cadence version
+        /// of the FiatToken smart contract
+        access(contract) fun burnCallback() {
+            if self.balance > 0.0 {
+                USDCFlow.totalSupply = USDCFlow.totalSupply - self.balance
+            }
+            self.balance = 0.0
+        }
+
+        /// getSupportedVaultTypes optionally returns a list of vault types that this receiver accepts
+        access(all) view fun getSupportedVaultTypes(): {Type: Bool} {
+            let supportedTypes: {Type: Bool} = {}
+            supportedTypes[self.getType()] = true
+            return supportedTypes
+        }
+
+        /// Returns whether the specified type can be deposited
+        access(all) view fun isSupportedVaultType(type: Type): Bool {
+            return self.getSupportedVaultTypes()[type] ?? false
+        }
+
+        /// Asks if the amount can be withdrawn from this vault
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return amount <= self.balance
+        }
+
+        access(all) fun createEmptyVault(): @USDCFlow.Vault {
+            return <-create Vault(balance: 0.0)
+        }
+
         /// withdraw
         /// @param amount: The amount of tokens to be withdrawn from the vault
         /// @return The Vault resource containing the withdrawn funds
         ///
-        pub fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             self.balance = self.balance - amount
-            emit TokensWithdrawn(amount: amount, from: self.owner?.address)
             return <-create Vault(balance: amount)
         }
 
         /// deposit
         /// @param from: The Vault resource containing the funds that will be deposited
         ///
-        pub fun deposit(from: @FungibleToken.Vault) {
+        access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @USDCFlow.Vault
             self.balance = self.balance + vault.balance
-            emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
-            vault.balance = 0.0
             destroy vault
-        }
-
-        destroy() {
-            if self.balance > 0.0 {
-                USDCFlow.totalSupply = USDCFlow.totalSupply - self.balance
-            }
         }
 
         /// Gets an array of all the Metadata Views implemented by USDCFlow
@@ -131,8 +150,8 @@ pub contract USDCFlow: FungibleToken, ViewResolver {
         /// @return An array of Types defining the implemented views. This value will be used by
         ///         developers to know which parameter to pass to the resolveView() method.
         ///
-        pub fun getViews(): [Type] {
-            return USDCFlow.getViews()
+        access(all) view fun getViews(): [Type] {
+            return USDCFlow.getContractViews(resourceType: nil)
         }
 
         /// Resolves Metadata Views out of the USDCFlow
@@ -140,44 +159,66 @@ pub contract USDCFlow: FungibleToken, ViewResolver {
         /// @param view: The Type of the desired view.
         /// @return A structure representing the requested view.
         ///
-        pub fun resolveView(_ view: Type): AnyStruct? {
-            return USDCFlow.resolveView(view)
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            return USDCFlow.resolveContractView(resourceType: nil, viewType: view)
         }
+    }
+
+    access(all) resource Minter: FlowEVMBridgeHandlerInterfaces.TokenMinter {
+
+        /// Required function for the bridge to be able to work with the Minter
+        access(all) view fun getMintedType(): Type {
+            return Type<@USDCFlow.Vault>()
+        }
+
+        /// Function for the bridge to mint tokens that are bridged from Flow EVM
+        access(FlowEVMBridgeHandlerInterfaces.Mint) fun mint(amount: UFix64): @{FungibleToken.Vault} {
+            let newTotalSupply = USDCFlow.totalSupply + amount
+            USDCFlow.totalSupply = newTotalSupply
+
+            let vault <-create Vault(balance: amount)
+
+            emit Minted(amount: amount, mintedUUID: vault.uuid)
+            return <-vault
+        }
+
+        /// Function for the bridge to burn tokens that are bridged back to Flow EVM
+        access(all) fun burn(vault: @{FungibleToken.Vault}) {
+            let toBurn <- vault as! @USDCFlow.Vault
+            let amount = toBurn.balance
+
+            assert(USDCFlow.totalSupply >= amount, message: "burning more than total supply")
+
+            emit Burned(minter: self.uuid, amount: amount, burntUUID: toBurn.uuid)
+
+            // This function updates USDCFlow.totalSupply
+            Burner.burn(<-toBurn)
+        }
+    }
+
+    /// Sends the USDCFlow Minter to the Flow/EVM bridge
+    /// without giving any account access to the minter
+    /// before it is safely in the decentralized bridge
+    access(all) fun sendMinterToBridge(_ bridgeAddress: Address) {
+        let minter <- create Minter()
+        // borrow a reference to the bridge's configuration admin resource from public Capability
+        let bridgeAdmin = getAccount(bridgeAddress).capabilities.borrow<&FlowEVMBridgeConfig.Admin>(
+                FlowEVMBridgeConfig.adminPublicPath
+            ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
+            
+        // sets the FiatToken as the minter resource for all FiatToken bridge requests
+        // prior to transferring the Minter, a TokenHandler will be set for FiatToken during the bridge's initial
+        // configuration, setting the stage for this minter to be sent.
+        bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
     }
 
     /// createEmptyVault
     ///
     /// @return The new Vault resource with a balance of zero
     ///
-    pub fun createEmptyVault(): @Vault {
-        return <-create Vault(balance: 0.0)
-    }
-
-    /// wrapFiatToken
-    ///
-    /// Provides a way for users to exchange a FiatToken Vault
-    /// for a USDCFlow Vault with the same balance
-    pub fun wrapFiatToken(_ from: @FungibleToken.Vault): @Vault {
-        post {
-            result.balance == before(from.balance):
-                "The USDCFlow Vault that was returned does not have the same balance as the Vault that was deposited!"
-        }
-
-        let vault <- from as! @FiatToken.Vault
-
-        // Get a reference to the contract account's stored Vault
-        let fiatTokenVaultRef = self.account.borrow<&FiatToken.Vault>(from: FiatToken.VaultStoragePath)
-            ?? panic("Could not borrow reference to the owner's FiatToken Vault!")
-
-        let wrappedFiatTokenVault <- create Vault(balance: vault.balance)
-
-        emit TokensMinted(amount: wrappedFiatTokenVault.balance, depositedUUID: vault.uuid, mintedUUID: wrappedFiatTokenVault.uuid)
-
-        fiatTokenVaultRef.deposit(from: <-vault)
-
-        self.totalSupply = self.totalSupply + wrappedFiatTokenVault.balance
-
-        return <-wrappedFiatTokenVault
+    access(all) fun createEmptyVault(vaultType: Type): @Vault {
+        let r <-create Vault(balance: 0.0)
+        return <-r
     }
 
     init() {
@@ -186,42 +227,15 @@ pub contract USDCFlow: FungibleToken, ViewResolver {
         self.VaultPublicPath = /public/usdcFlowMetadata
         self.ReceiverPublicPath = /public/usdcFlowReceiver
 
-        // Create a new FiatToken Vault and put it in storage
-        self.account.save(
-            <-FiatToken.createEmptyVault(),
-            to: FiatToken.VaultStoragePath
-        )
-
-        // Create FiatToken Vault Capabilities
-        self.account.link<&FiatToken.Vault{FungibleToken.Receiver}>(
-            FiatToken.VaultReceiverPubPath,
-            target: FiatToken.VaultStoragePath
-        )
-        self.account.link<&FiatToken.Vault{FiatToken.ResourceId}>(
-            FiatToken.VaultUUIDPubPath,
-            target: FiatToken.VaultStoragePath
-        )
-        self.account.link<&FiatToken.Vault{FungibleToken.Balance}>(
-            FiatToken.VaultBalancePubPath,
-            target: FiatToken.VaultStoragePath
-        )
+        let minter <- create Minter()
+        self.account.storage.save(<-minter, to: /storage/usdcFlowMinter)
 
         // Create the Vault with the total supply of tokens and save it in storage.
         let vault <- create Vault(balance: self.totalSupply)
-        self.account.save(<-vault, to: self.VaultStoragePath)
+        self.account.storage.save(<-vault, to: self.VaultStoragePath)
 
-        // Create a public capability to the stored Vault that exposes
-        // the `deposit` method through the `Receiver` interface.
-        self.account.link<&{FungibleToken.Receiver}>(
-            self.ReceiverPublicPath,
-            target: self.VaultStoragePath
-        )
-
-        // Create a public capability to the stored Vault that only exposes
-        // the `balance` field and the `resolveView` method through the `Balance` interface
-        self.account.link<&USDCFlow.Vault{FungibleToken.Balance}>(
-            self.VaultPublicPath,
-            target: self.VaultStoragePath
-        )
+        let tokenCap = self.account.capabilities.storage.issue<&USDCFlow.Vault>(self.VaultStoragePath)
+        self.account.capabilities.publish(tokenCap, at: self.ReceiverPublicPath)
+        self.account.capabilities.publish(tokenCap, at: self.VaultPublicPath)
     }
 }
