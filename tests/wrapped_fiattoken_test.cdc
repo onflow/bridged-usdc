@@ -4,7 +4,6 @@ import "test_helpers.cdc"
 import "FungibleToken"
 import "FungibleTokenMetadataViews"
 import "USDCFlow"
-import "FiatToken"
 
 access(all) let admin = Test.getAccount(0x0000000000000007)
 access(all) let usdcFlowContractAccount = Test.getAccount(0x0000000000000008)
@@ -19,39 +18,38 @@ access(all) let initTotalSupply = 1000.0
 
 access(all)
 fun setup() {
-    // deployWithArgs(
-    //     "FlowEVMBridgeHandlerInterfaces",
-    //     "../contracts/utility/FlowEVMBridgeHandlerInterfaces.cdc",
-    //     args: []
-    // )
+    deployWithArgs(
+        "FlowEVMBridgeHandlerInterfaces",
+        "../contracts/utility/FlowEVMBridgeHandlerInterfaces.cdc",
+        args: []
+    )
 
-    // deployWithArgs(
-    //     "FlowEVMBridgeConfig",
-    //     "../contracts/utility/FlowEVMBridgeConfig.cdc",
-    //     args: []
-    // )
+    deployWithArgs(
+        "FlowEVMBridgeConfig",
+        "../contracts/utility/FlowEVMBridgeConfig.cdc",
+        args: []
+    )
 
-    // deployWithArgs(
-    //     "FlowEVMBridgeHandlers",
-    //     "../contracts/utility/FlowEVMBridgeHandlers.cdc",
-    //     args: []
+    deployWithArgs(
+        "FlowEVMBridgeHandlers",
+        "../contracts/utility/FlowEVMBridgeHandlers.cdc",
+        args: []
+    )
+
+    // var err = Test.deployContract(
+    //     name: "FiatToken",
+    //     path: "../contracts/utility/FiatToken.cdc",
+    //     arguments: [
+    //         VaultStoragePath,
+    //         VaultBalancePubPath,
+    //         VaultReceiverPubPath,
+    //         MinterStoragePath,
+    //         initTotalSupply
+    //     ]
     // )
+    // Test.expect(err, Test.beNil())
 
     var err = Test.deployContract(
-        name: "FiatToken",
-        path: "../contracts/utility/FiatToken.cdc",
-        arguments: [
-            VaultStoragePath,
-            VaultBalancePubPath,
-            VaultReceiverPubPath,
-            VaultUUIDPubPath,
-            MinterStoragePath,
-            initTotalSupply
-        ]
-    )
-    Test.expect(err, Test.beNil())
-
-    err = Test.deployContract(
         name: "USDCFlow",
         path: "../contracts/USDCFlow.cdc",
         arguments: []
@@ -82,24 +80,32 @@ fun testSetupAccount() {
 }
 
 access(all)
-fun testWrapTokens() {
-    let txResult = _executeTransaction(
-        "../transactions/wrap_fiatToken.cdc",
-        [250.0],
+fun testMintTokens() {
+    let txResult = executeTransaction(
+        "../transactions/mint.cdc",
+        [recipient.address, 250.0],
         admin
     )
     Test.expect(txResult, Test.beSucceeded())
 
     // Test that the proper events were emitted
-    var typ = Type<USDCFlow.TokensMinted>()
+    var typ = Type<USDCFlow.Minted>()
     var events = Test.eventsOfType(typ)
     Test.assertEqual(1, events.length)
 
-    let tokensMintedEvent = events[0] as! USDCFlow.TokensMinted
+    let tokensMintedEvent = events[0] as! USDCFlow.Minted
     Test.assertEqual(250.0, tokensMintedEvent.amount)
 
-    // Test that the totalSupply increased by the amount of wrapped tokens
-    var scriptResult = _executeScript(
+    typ = Type<FungibleToken.Deposited>()
+    let depositEvents = Test.eventsOfType(typ)
+
+    let tokensDepositedEvent = depositEvents[depositEvents.length - 1] as! FungibleToken.Deposited
+    Test.assertEqual(250.0, tokensDepositedEvent.amount)
+    Test.assertEqual(recipient.address, tokensDepositedEvent.to!)
+    Test.assertEqual("A.0000000000000007.USDCFlow.Vault", tokensDepositedEvent.type)
+
+    // Test that the totalSupply increased by the amount of minted tokens
+    let scriptResult = executeScript(
         "../transactions/scripts/get_supply.cdc",
         []
     )
@@ -140,14 +146,14 @@ access(all)
 fun testTransferTokens() {
     let txResult = _executeTransaction(
         "../transactions/safe_generic_transfer.cdc",
-        [50.0, recipient.address, "usdcFlowVault", "usdcFlowReceiver"],
-        admin
+        [50.0, admin.address, "usdcFlowVault", "usdcFlowReceiver"],
+        recipient
     )
     Test.expect(txResult, Test.beSucceeded())
 
     var scriptResult = _executeScript(
         "../transactions/scripts/get_balance.cdc",
-        [admin.address]
+        [recipient.address]
     )
     Test.expect(scriptResult, Test.beSucceeded())
 
@@ -157,7 +163,7 @@ fun testTransferTokens() {
 
     scriptResult = _executeScript(
         "../transactions/scripts/get_balance.cdc",
-        [recipient.address]
+        [admin.address]
     )
     Test.expect(scriptResult, Test.beSucceeded())
 
@@ -178,8 +184,8 @@ fun testGetViews() {
     let expectedViews = [
         Type<FungibleTokenMetadataViews.FTView>(),
         Type<FungibleTokenMetadataViews.FTDisplay>(),
-        Type<FungibleTokenMetadataViews.FTVaultData>()
-        //Type<FungibleTokenMetadataViews.TotalSupply>()
+        Type<FungibleTokenMetadataViews.FTVaultData>(),
+        Type<FungibleTokenMetadataViews.TotalSupply>()
     ]
     Test.assertEqual(expectedViews, supportedViews)
 }

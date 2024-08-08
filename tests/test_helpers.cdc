@@ -1,5 +1,15 @@
 import Test
 
+access(all) fun deployWithArgs(_ contractName: String, _ path: String, args: [AnyStruct]) {
+    let err = Test.deployContract(
+        name: contractName,
+        path: path,
+        arguments: args,
+    )
+
+    Test.expect(err, Test.beNil())
+}
+
 /* --- Executors --- */
 
 access(all)
@@ -8,7 +18,7 @@ fun _executeScript(_ path: String, _ args: [AnyStruct]): Test.ScriptResult {
 }
 
 access(all)
-fun _executeTransaction(_ path: String, _ args: [AnyStruct], _ signer: Test.Account): Test.TransactionResult {
+fun _executeTransaction(_ path: String, _ args: [AnyStruct], _ signer: Test.TestAccount): Test.TransactionResult {
     let txn = Test.Transaction(
         code: Test.readFile(path),
         authorizers: [signer.address],

@@ -5,11 +5,11 @@ import "MetadataViews"
 import "USDCFlow"
 import "FungibleTokenMetadataViews"
 
-pub fun main(address: Address): [Type] {
+access(all) fun main(address: Address): [Type] {
     let account = getAccount(address)
 
-    let vaultRef = account.getCapability(USDCFlow.VaultPublicPath)
-        .borrow<&USDCFlow.Vault{MetadataViews.Resolver}>()
+    let vaultRef = account.capabilities.get<&USDCFlow.Vault>(USDCFlow.VaultPublicPath)
+        .borrow()
         ?? panic("Could not borrow MetadataViews reference to the Vault")
 
     return vaultRef.getViews()
