@@ -9,6 +9,7 @@ pub contract FiatToken: FungibleToken {
     pub let VaultStoragePath: StoragePath
     pub let VaultBalancePubPath: PublicPath
     pub let VaultReceiverPubPath: PublicPath
+    pub let VaultUUIDPubPath: PublicPath
     pub let MinterStoragePath: StoragePath
 
     pub var totalSupply: UFix64
@@ -24,11 +25,19 @@ pub contract FiatToken: FungibleToken {
 
     /// ------- FiatToken Resources -------
 
-    pub resource Vault: FungibleToken.Provider,
+    pub resource interface ResourceId {
+        pub fun UUID(): UInt64
+    }
+
+    pub resource Vault: ResourceId, FungibleToken.Provider,
         FungibleToken.Receiver,
         FungibleToken.Balance {
         
         pub var balance: UFix64
+
+        pub fun UUID(): UInt64 {
+            return self.uuid
+        }
 
         /// getSupportedVaultTypes optionally returns a list of vault types that this receiver accepts
         pub fun getSupportedVaultTypes(): {Type: Bool} {
@@ -78,6 +87,7 @@ pub contract FiatToken: FungibleToken {
         VaultStoragePath: StoragePath,
         VaultBalancePubPath: PublicPath,
         VaultReceiverPubPath: PublicPath,
+        VaultUUIDPubPath: PublicPath,
         MinterStoragePath: StoragePath,
         initTotalSupply: UFix64,
     ) {
@@ -87,6 +97,7 @@ pub contract FiatToken: FungibleToken {
         self.VaultStoragePath = VaultStoragePath
         self.VaultBalancePubPath = VaultBalancePubPath
         self.VaultReceiverPubPath = VaultReceiverPubPath
+        self.VaultUUIDPubPath = VaultUUIDPubPath
 
         self.MinterStoragePath = MinterStoragePath
  

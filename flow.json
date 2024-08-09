@@ -95,8 +95,9 @@
 		"USDCFlow": {
 			"source": "./contracts/USDCFlow.cdc",
 			"aliases": {
-				"testing": "0000000000000007",
-                "testnet": "4516677f8083d680"
+				"mainnet": "f1ab99c82dee3526",
+				"testing": "0000000000000008",
+				"testnet": "4516677f8083d680"
 			}
 		},
 		"USDCFlowMinterToBridge": {
@@ -117,6 +118,28 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "758abfd76ad82071cbeeb309f251eeefbe9bb8442557de745769a6ff0a912636"
+		},
+		"mainnet-test": {
+			"address": "93a83fa73bc253ce",
+			"key": {
+				"type": "file",
+				"location": "./mainnet-test.pkey"
+			}
+		},
+		"mainnet-usdc-josh": {
+			"address": "f1ab99c82dee3526",
+			"key": {
+				"type": "google-kms",
+				"hashAlgorithm": "SHA2_256",
+				"resourceID": "projects/dl-flow-admin/locations/global/keyRings/flow-usdc/cryptoKeys/flow-usdc-mainnet/cryptoKeyVersions/1"
+			}
+		},
+		"testnet-test": {
+			"address": "85639e2129d50be5",
+			"key": {
+				"type": "file",
+				"location": "testnet-test.pkey"
+			}
 		},
 		"testnet-usdc": {
 			"address": "4516677f8083d680",
