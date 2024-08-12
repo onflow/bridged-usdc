@@ -7,11 +7,13 @@ import "USDCFlow"
 import "FiatToken"
 
 access(all) let admin = Test.getAccount(0x0000000000000007)
+access(all) let usdcFlowContractAccount = Test.getAccount(0x0000000000000008)
 access(all) let recipient = Test.createAccount()
 
 access(all) let VaultStoragePath = StoragePath(identifier: "USDCVault")!
 access(all) let VaultBalancePubPath = PublicPath(identifier: "USDCVaultBalance")!
 access(all) let VaultReceiverPubPath = PublicPath(identifier: "USDCVaultReceiver")!
+access(all) let VaultUUIDPubPath = PublicPath(identifier: "USDCVaultUUID")!
 access(all) let MinterStoragePath = StoragePath(identifier: "USDCMinter")!
 access(all) let initTotalSupply = 1000.0
 
@@ -42,6 +44,7 @@ fun setup() {
             VaultStoragePath,
             VaultBalancePubPath,
             VaultReceiverPubPath,
+            VaultUUIDPubPath,
             MinterStoragePath,
             initTotalSupply
         ]
@@ -101,6 +104,8 @@ fun testWrapTokens() {
         []
     )
     Test.expect(scriptResult, Test.beSucceeded())
+    var totalSupply = scriptResult.returnValue! as! UFix64
+    Test.assertEqual(250.0, totalSupply)
 
     // FiatToken supply should not have decreased
     scriptResult = _executeScript(
@@ -109,17 +114,26 @@ fun testWrapTokens() {
     )
     Test.expect(scriptResult, Test.beSucceeded())
 
-    let totalSupply = scriptResult.returnValue! as! UFix64
+    totalSupply = scriptResult.returnValue! as! UFix64
     Test.assertEqual(1000.0, totalSupply)
 
-    // Verify the senders old FiatToken balance
+    // Verify the senders old FiatToken balance was decreased by the amount wrapped
     scriptResult = _executeScript(
         "scripts/get_fiattoken_balance.cdc",
         [admin.address]
     )
     Test.expect(scriptResult, Test.beSucceeded())
     var balance = scriptResult.returnValue! as! UFix64
-    Test.assertEqual(1000.0, balance)
+    Test.assertEqual(750.0, balance)
+
+    // Verify the USDCFlow old FiatToken balance was increased by the amount minted
+    scriptResult = _executeScript(
+        "scripts/get_fiattoken_balance.cdc",
+        [usdcFlowContractAccount.address]
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
+    balance = scriptResult.returnValue! as! UFix64
+    Test.assertEqual(250.0, balance)
 }
 
 access(all)

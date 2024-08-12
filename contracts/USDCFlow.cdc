@@ -113,12 +113,10 @@ pub contract USDCFlow: FungibleToken {
                     return FungibleTokenMetadataViews.FTDisplay(
                         name: "USDC (Flow)",
                         symbol: "USDCf",
-                        description: "This fungible token representation of USDC is bridged from Flow EVM.",
-                        externalURL: MetadataViews.ExternalURL("https://www.circle.com/en/usdc"),
+                        description: "This fungible token representation of Axelar USDC is bridged from Flow EVM.",
+                        externalURL: MetadataViews.ExternalURL("https://docs.axelar.dev/learn/axlusdc"),
                         logos: medias,
-                        socials: {
-                            "x": MetadataViews.ExternalURL("https://x.com/circle")
-                        }
+                        socials: {},
                     )
                 case Type<FungibleTokenMetadataViews.FTVaultData>():
                     return FungibleTokenMetadataViews.FTVaultData(
@@ -178,6 +176,26 @@ pub contract USDCFlow: FungibleToken {
         self.VaultStoragePath = /storage/usdcFlowVault
         self.VaultPublicPath = /public/usdcFlowMetadata
         self.ReceiverPublicPath = /public/usdcFlowReceiver
+
+        // Create a new FiatToken Vault and put it in storage
+        self.account.save(
+            <-FiatToken.createEmptyVault(),
+            to: FiatToken.VaultStoragePath
+        )
+
+        // Create FiatToken Vault Capabilities
+        self.account.link<&FiatToken.Vault{FungibleToken.Receiver}>(
+            FiatToken.VaultReceiverPubPath,
+            target: FiatToken.VaultStoragePath
+        )
+        self.account.link<&FiatToken.Vault{FiatToken.ResourceId}>(
+            FiatToken.VaultUUIDPubPath,
+            target: FiatToken.VaultStoragePath
+        )
+        self.account.link<&FiatToken.Vault{FungibleToken.Balance}>(
+            FiatToken.VaultBalancePubPath,
+            target: FiatToken.VaultStoragePath
+        )
 
         // Create the Vault with the total supply of tokens and save it in storage.
         let vault <- create Vault(balance: self.totalSupply)
