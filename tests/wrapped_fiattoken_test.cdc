@@ -84,7 +84,7 @@ fun testMintTokens() {
     let txResult = executeTransaction(
         "../transactions/mint.cdc",
         [recipient.address, 250.0],
-        admin
+        usdcFlowContractAccount
     )
     Test.expect(txResult, Test.beSucceeded())
 
@@ -102,10 +102,10 @@ fun testMintTokens() {
     let tokensDepositedEvent = depositEvents[depositEvents.length - 1] as! FungibleToken.Deposited
     Test.assertEqual(250.0, tokensDepositedEvent.amount)
     Test.assertEqual(recipient.address, tokensDepositedEvent.to!)
-    Test.assertEqual("A.0000000000000007.USDCFlow.Vault", tokensDepositedEvent.type)
+    Test.assertEqual("A.0000000000000008.USDCFlow.Vault", tokensDepositedEvent.type)
 
     // Test that the totalSupply increased by the amount of minted tokens
-    let scriptResult = executeScript(
+    var scriptResult = executeScript(
         "../transactions/scripts/get_supply.cdc",
         []
     )
@@ -113,32 +113,13 @@ fun testMintTokens() {
     var totalSupply = scriptResult.returnValue! as! UFix64
     Test.assertEqual(250.0, totalSupply)
 
-    // FiatToken supply should not have decreased
     scriptResult = _executeScript(
-        "scripts/get_fiattoken_supply.cdc",
-        []
+        "../transactions/scripts/get_balance.cdc",
+        [recipient.address]
     )
     Test.expect(scriptResult, Test.beSucceeded())
 
-    totalSupply = scriptResult.returnValue! as! UFix64
-    Test.assertEqual(1000.0, totalSupply)
-
-    // Verify the senders old FiatToken balance was decreased by the amount wrapped
-    scriptResult = _executeScript(
-        "scripts/get_fiattoken_balance.cdc",
-        [admin.address]
-    )
-    Test.expect(scriptResult, Test.beSucceeded())
     var balance = scriptResult.returnValue! as! UFix64
-    Test.assertEqual(750.0, balance)
-
-    // Verify the USDCFlow old FiatToken balance was increased by the amount minted
-    scriptResult = _executeScript(
-        "scripts/get_fiattoken_balance.cdc",
-        [usdcFlowContractAccount.address]
-    )
-    Test.expect(scriptResult, Test.beSucceeded())
-    balance = scriptResult.returnValue! as! UFix64
     Test.assertEqual(250.0, balance)
 }
 
@@ -146,7 +127,7 @@ access(all)
 fun testTransferTokens() {
     let txResult = _executeTransaction(
         "../transactions/safe_generic_transfer.cdc",
-        [50.0, admin.address, "usdcFlowVault", "usdcFlowReceiver"],
+        [50.0, usdcFlowContractAccount.address, "usdcFlowVault", "usdcFlowReceiver"],
         recipient
     )
     Test.expect(txResult, Test.beSucceeded())
@@ -158,16 +139,16 @@ fun testTransferTokens() {
     Test.expect(scriptResult, Test.beSucceeded())
 
     var balance = scriptResult.returnValue! as! UFix64
-    // 250.0 tokens were previously minted to the admin
+    // 250.0 tokens were previously minted to the recipient
     Test.assertEqual(200.0, balance)
 
     scriptResult = _executeScript(
         "../transactions/scripts/get_balance.cdc",
-        [admin.address]
+        [usdcFlowContractAccount.address]
     )
     Test.expect(scriptResult, Test.beSucceeded())
 
-    // The recipient had initially 0.0 tokens so should have 50 now
+    // The usdcFlowContractAccount had initially 0.0 tokens so should have 50 now
     balance = scriptResult.returnValue! as! UFix64
     Test.assertEqual(50.0, balance)
 }
