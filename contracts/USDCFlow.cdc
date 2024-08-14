@@ -2,6 +2,7 @@ import "FungibleToken"
 import "MetadataViews"
 import "FungibleTokenMetadataViews"
 import "FiatToken"
+import "ViewResolver"
 
 /// USDCFlow
 ///
@@ -18,7 +19,7 @@ import "FiatToken"
 /// This is not the official Circle USDC, only a bridged version
 /// that is still backed by official USDC on the other side of the bridge
 
-pub contract USDCFlow: FungibleToken {
+pub contract USDCFlow: FungibleToken, ViewResolver {
 
     /// Total supply of USDCFlows in existence
     pub var totalSupply: UFix64
@@ -39,6 +40,54 @@ pub contract USDCFlow: FungibleToken {
 
     /// The event that is emitted when new tokens are minted
     pub event TokensMinted(amount: UFix64, depositedUUID: UInt64, mintedUUID: UInt64)
+
+    pub fun getViews(): [Type] {
+        return [
+            Type<FungibleTokenMetadataViews.FTView>(),
+            Type<FungibleTokenMetadataViews.FTDisplay>(),
+            Type<FungibleTokenMetadataViews.FTVaultData>()
+        ]
+    }
+
+    pub fun resolveView(_ view: Type): AnyStruct? {
+        switch view {
+            case Type<FungibleTokenMetadataViews.FTView>():
+                return FungibleTokenMetadataViews.FTView(
+                    ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
+                    ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
+                )
+            case Type<FungibleTokenMetadataViews.FTDisplay>():
+                let media = MetadataViews.Media(
+                        file: MetadataViews.HTTPFile(
+                        url: "https://commons.wikimedia.org/wiki/File:Circle_USDC_Logo.svg"
+                    ),
+                    mediaType: "image/svg+xml"
+                )
+                let medias = MetadataViews.Medias([media])
+                return FungibleTokenMetadataViews.FTDisplay(
+                    name: "USDC (Flow)",
+                    symbol: "USDCf",
+                    description: "This fungible token representation of Axelar USDC is bridged from Flow EVM.",
+                    externalURL: MetadataViews.ExternalURL("https://docs.axelar.dev/learn/axlusdc"),
+                    logos: medias,
+                    socials: {},
+                )
+            case Type<FungibleTokenMetadataViews.FTVaultData>():
+                return FungibleTokenMetadataViews.FTVaultData(
+                    storagePath: USDCFlow.VaultStoragePath,
+                    receiverPath: USDCFlow.ReceiverPublicPath,
+                    metadataPath: USDCFlow.VaultPublicPath,
+                    providerPath: /private/usdcFlowVault,
+                    receiverLinkedType: Type<&USDCFlow.Vault{FungibleToken.Receiver}>(),
+                    metadataLinkedType: Type<&USDCFlow.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
+                    providerLinkedType: Type<&USDCFlow.Vault{FungibleToken.Provider}>(),
+                    createEmptyVaultFunction: (fun (): @USDCFlow.Vault {
+                        return <-USDCFlow.createEmptyVault()
+                    })
+                )
+        }
+        return nil
+    }
 
     pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
 
@@ -83,11 +132,7 @@ pub contract USDCFlow: FungibleToken {
         ///         developers to know which parameter to pass to the resolveView() method.
         ///
         pub fun getViews(): [Type] {
-            return [
-                Type<FungibleTokenMetadataViews.FTView>(),
-                Type<FungibleTokenMetadataViews.FTDisplay>(),
-                Type<FungibleTokenMetadataViews.FTVaultData>()
-            ]
+            return USDCFlow.getViews()
         }
 
         /// Resolves Metadata Views out of the USDCFlow
@@ -96,43 +141,7 @@ pub contract USDCFlow: FungibleToken {
         /// @return A structure representing the requested view.
         ///
         pub fun resolveView(_ view: Type): AnyStruct? {
-            switch view {
-                case Type<FungibleTokenMetadataViews.FTView>():
-                    return FungibleTokenMetadataViews.FTView(
-                        ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
-                        ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
-                    )
-                case Type<FungibleTokenMetadataViews.FTDisplay>():
-                    let media = MetadataViews.Media(
-                            file: MetadataViews.HTTPFile(
-                            url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
-                        ),
-                        mediaType: "image/svg+xml"
-                    )
-                    let medias = MetadataViews.Medias([media])
-                    return FungibleTokenMetadataViews.FTDisplay(
-                        name: "USDC (Flow)",
-                        symbol: "USDCf",
-                        description: "This fungible token representation of Axelar USDC is bridged from Flow EVM.",
-                        externalURL: MetadataViews.ExternalURL("https://docs.axelar.dev/learn/axlusdc"),
-                        logos: medias,
-                        socials: {},
-                    )
-                case Type<FungibleTokenMetadataViews.FTVaultData>():
-                    return FungibleTokenMetadataViews.FTVaultData(
-                        storagePath: USDCFlow.VaultStoragePath,
-                        receiverPath: USDCFlow.ReceiverPublicPath,
-                        metadataPath: USDCFlow.VaultPublicPath,
-                        providerPath: /private/usdcFlowVault,
-                        receiverLinkedType: Type<&USDCFlow.Vault{FungibleToken.Receiver}>(),
-                        metadataLinkedType: Type<&USDCFlow.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
-                        providerLinkedType: Type<&USDCFlow.Vault{FungibleToken.Provider}>(),
-                        createEmptyVaultFunction: (fun (): @USDCFlow.Vault {
-                            return <-USDCFlow.createEmptyVault()
-                        })
-                    )
-            }
-            return nil
+            return USDCFlow.resolveView(view)
         }
     }
 
