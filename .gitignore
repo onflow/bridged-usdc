@@ -2,3 +2,6 @@
 .env
 coverage.json
 *.pkey
+
+transactions/transfer_flow.cdc
+tests/transactions/transfer_fiattoken.cdc

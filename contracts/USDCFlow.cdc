@@ -3,14 +3,7 @@ import "FungibleTokenMetadataViews"
 import "MetadataViews"
 import "Burner"
 import "FlowEVMBridgeHandlerInterfaces"
-// import "FlowEVMBridgeConfig"
-
-/// USDCFlow
-///
-/// Defines the Cadence version of bridged Flow USDC. 
-/// Before the Sept 4th, 2024 Crescendo migration, users can send
-/// `FiatToken` vaults to the `USDCFlow.wrapFiatToken()` function
-/// and receive `USDCFlow` vaults back with the exact same balance.
+import "FlowEVMBridgeConfig"
 
 /// After the Crescendo migration, the `USDCFlow` smart contract
 /// will integrate directly with the Flow VM bridge to become
@@ -197,17 +190,16 @@ access(all) contract USDCFlow: FungibleToken {
     /// without giving any account access to the minter
     /// before it is safely in the decentralized bridge
     access(all) fun sendMinterToBridge(_ bridgeAddress: Address) {
-        panic("Cannot execute this transaction until after the bridge has been deployed!")
-        // let minter <- create Minter()
+        let minter <- create Minter()
         // borrow a reference to the bridge's configuration admin resource from public Capability
-        // let bridgeAdmin = getAccount(bridgeAddress).capabilities.borrow<&FlowEVMBridgeConfig.Admin>(
-        //         FlowEVMBridgeConfig.adminPublicPath
-        //     ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
+        let bridgeAdmin = getAccount(bridgeAddress).capabilities.borrow<&FlowEVMBridgeConfig.Admin>(
+                FlowEVMBridgeConfig.adminPublicPath
+            ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
             
         // sets the USDCFlow as the minter resource for all USDCFlow bridge requests
         // prior to transferring the Minter, a TokenHandler will be set for USDCFlow during the bridge's initial
         // configuration, setting the stage for this minter to be sent.
-        // bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
+        bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
     }
 
     /// createEmptyVault

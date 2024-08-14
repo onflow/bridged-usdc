@@ -30,11 +30,11 @@ fun setup() {
         args: []
     )
 
-    deployWithArgs(
-        "FlowEVMBridgeHandlers",
-        "../contracts/utility/FlowEVMBridgeHandlers.cdc",
-        args: []
-    )
+    // deployWithArgs(
+    //     "FlowEVMBridgeHandlers",
+    //     "../contracts/utility/FlowEVMBridgeHandlers.cdc",
+    //     args: []
+    // )
 
     // var err = Test.deployContract(
     //     name: "FiatToken",
