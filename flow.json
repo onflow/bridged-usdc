@@ -13,9 +13,9 @@
 			"source": "./contracts/utility/EVM.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-                "testing": "0000000000000001",
 				"previewnet": "b6763b4399a888c8",
-                "testnet": "8c5303eaa26202d6"
+				"testing": "0000000000000001",
+				"testnet": "8c5303eaa26202d6"
 			}
 		},
 		"FiatToken": {
@@ -29,21 +29,21 @@
 			"source": "./contracts/utility/FlowEVMBridgeConfig.cdc",
 			"aliases": {
 				"testing": "0000000000000007",
-                "testnet": "0xdfc20aee650fcbdf"
+				"testnet": "dfc20aee650fcbdf"
 			}
 		},
 		"FlowEVMBridgeHandlerInterfaces": {
 			"source": "./contracts/utility/FlowEVMBridgeHandlerInterfaces.cdc",
 			"aliases": {
 				"testing": "0000000000000007",
-                "testnet": "0xdfc20aee650fcbdf"
+				"testnet": "dfc20aee650fcbdf"
 			}
 		},
 		"FlowEVMBridgeHandlers": {
 			"source": "./contracts/utility/FlowEVMBridgeHandlers.cdc",
 			"aliases": {
 				"testing": "0000000000000007",
-                "testnet": "0xdfc20aee650fcbdf"
+				"testnet": "dfc20aee650fcbdf"
 			}
 		},
 		"FlowServiceAccount": {
@@ -155,6 +155,13 @@
 			}
 		},
 		"testnet-usdc": {
+			"address": "64adf39cbc354fcb",
+			"key": {
+				"type": "file",
+				"location": "./testnet-usdc.pkey"
+			}
+		},
+		"testnet-usdc-broken": {
 			"address": "4516677f8083d680",
 			"key": {
 				"type": "file",
@@ -170,6 +177,9 @@
 		},
 		"testnet": {
 			"testnet-usdc": [
+				"USDCFlow"
+			],
+			"testnet-usdc-broken": [
 				"USDCFlow"
 			]
 		}
