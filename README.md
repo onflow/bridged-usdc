@@ -25,8 +25,8 @@ so they can build a basic understanding of the programming language.
 | Network       | Contract Address     |
 | ------------- | -------------------- |
 | Previewnet    | Coming Soon |
-| Testnet       | [`0x4516677f8083d680`](https://contractbrowser.com/A.4516677f8083d680.USDCFlow) |
-| Mainnet       | [`0xf1ab99c82dee3526`]() |
+| Testnet       | [`0x64adf39cbc354fcb`](https://contractbrowser.com/A.64adf39cbc354fcb.USDCFlow) |
+| Mainnet       | [`0xf1ab99c82dee3526`](https://contractbrowser.com/A.f1ab99c82dee3526.USDCFlow) |
 
 This is the contract that defines the Cadence version of Flow USDC. 
 Before the Sept 4th Crescendo migration, users can send
@@ -48,6 +48,13 @@ You can see a guide for how to migrate to the `USDCFlow` contract
 in the [Cadence 1.0 Migration Guide](https://cadence-lang.org/docs/cadence-migration-guide/).
 
 You can find transactions and scripts for interacting with the `USDCFlow` contract in the `transactions/` directory.
+
+# Testnet Versions
+
+On Flow **Testnet**, the original `USDCFlow` smart contract did not migrate properly,
+so a new one had to be deployed in order to function properly. If you are using
+`USDCFlow` on testnet, make sure to use the contract deployed at `0x64adf39cbc354fcb`.
+This is not an issue on mainnet and the contract at `0xf1ab99c82dee3526` is safe to use.
 
 # Local Development
 
