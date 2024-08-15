@@ -2,6 +2,7 @@ import "FungibleToken"
 import "FungibleTokenMetadataViews"
 import "MetadataViews"
 import "Burner"
+import "ViewResolver"
 import "FlowEVMBridgeHandlerInterfaces"
 import "FlowEVMBridgeConfig"
 
@@ -13,7 +14,7 @@ import "FlowEVMBridgeConfig"
 /// This is not the official Circle USDC, only a bridged version
 /// that is still backed by official USDC on the other side of the bridge
 
-access(all) contract USDCFlow: FungibleToken {
+access(all) contract USDCFlow: FungibleToken, ViewResolver {
 
     /// Total supply of USDCFlows in existence
     access(all) var totalSupply: UFix64
