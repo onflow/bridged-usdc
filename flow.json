@@ -6,7 +6,8 @@
 				"emulator": "f8d6e0586b0a20c7",
 				"previewnet": "b6763b4399a888c8",
 				"testing": "0000000000000001",
-				"testnet": "9a0766d93b6608b7"
+				"testnet": "9a0766d93b6608b7",
+                "mainnet": "f233dcee88fe0abe"
 			}
 		},
 		"EVM": {
@@ -100,7 +101,7 @@
 			"aliases": {
 				"mainnet": "f1ab99c82dee3526",
 				"testing": "0000000000000008",
-				"testnet": "4516677f8083d680"
+				"testnet": "64adf39cbc354fcb"
 			}
 		},
 		"USDCFlowMinterToBridge": {
