@@ -23,7 +23,7 @@ transaction(amount: UFix64) {
             // The signer has not set up a USDCFlow Vault yet
             // so store it in their storage
             signer.save(
-                <-wrappedTokens,
+                <-USDCFlow.createEmptyVault(),
                 to: USDCFlow.VaultStoragePath
             )
 
@@ -36,6 +36,11 @@ transaction(amount: UFix64) {
                 USDCFlow.VaultPublicPath,
                 target: USDCFlow.VaultStoragePath
             )
+
+            let wrappedVaultRef = signer.borrow<&{FungibleToken.Receiver}>(from: USDCFlow.VaultStoragePath)
+                ?? panic("Could not borrow a receiver reference to the USDCFlow.Vault!")
+
+            wrappedVaultRef.deposit(from: <-wrappedTokens)
         }
     }
 }
