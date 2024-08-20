@@ -3,8 +3,8 @@ import "FungibleTokenMetadataViews"
 import "MetadataViews"
 import "Burner"
 import "ViewResolver"
-import "FlowEVMBridgeHandlerInterfaces"
-import "FlowEVMBridgeConfig"
+// import "FlowEVMBridgeHandlerInterfaces"
+// import "FlowEVMBridgeConfig"
 
 /// After the Crescendo migration, the `USDCFlow` smart contract
 /// will integrate directly with the Flow VM bridge to become
@@ -47,7 +47,7 @@ access(all) contract USDCFlow: FungibleToken, ViewResolver {
             case Type<FungibleTokenMetadataViews.FTDisplay>():
                 let media = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
-                        url: "https://uploads-ssl.webflow.com/5f734f4dbd95382f4fdfa0ea/66bf87860866d1c10df323e2_USDC_FLOW.svg"
+                        url: "https://uploads-ssl.webflow.com/5f734f4dbd95382f4fdfa0ea/66bfae00953c3d7bd09e7ac4_USDC-and-FLOW.svg"
                     ),
                     mediaType: "image/svg+xml"
                 )
@@ -159,49 +159,49 @@ access(all) contract USDCFlow: FungibleToken, ViewResolver {
         }
     }
 
-    access(all) resource Minter: FlowEVMBridgeHandlerInterfaces.TokenMinter {
+    // access(all) resource Minter: FlowEVMBridgeHandlerInterfaces.TokenMinter {
 
-        /// Required function for the bridge to be able to work with the Minter
-        access(all) view fun getMintedType(): Type {
-            return Type<@USDCFlow.Vault>()
-        }
+    //     /// Required function for the bridge to be able to work with the Minter
+    //     access(all) view fun getMintedType(): Type {
+    //         return Type<@USDCFlow.Vault>()
+    //     }
 
-        /// Function for the bridge to mint tokens that are bridged from Flow EVM
-        access(FlowEVMBridgeHandlerInterfaces.Mint) fun mint(amount: UFix64): @{FungibleToken.Vault} {
-            let newTotalSupply = USDCFlow.totalSupply + amount
-            USDCFlow.totalSupply = newTotalSupply
+    //     /// Function for the bridge to mint tokens that are bridged from Flow EVM
+    //     access(FlowEVMBridgeHandlerInterfaces.Mint) fun mint(amount: UFix64): @{FungibleToken.Vault} {
+    //         let newTotalSupply = USDCFlow.totalSupply + amount
+    //         USDCFlow.totalSupply = newTotalSupply
 
-            let vault <-create Vault(balance: amount)
+    //         let vault <-create Vault(balance: amount)
 
-            emit Minted(amount: amount, mintedUUID: vault.uuid)
-            return <-vault
-        }
+    //         emit Minted(amount: amount, mintedUUID: vault.uuid)
+    //         return <-vault
+    //     }
 
-        /// Function for the bridge to burn tokens that are bridged back to Flow EVM
-        access(all) fun burn(vault: @{FungibleToken.Vault}) {
-            let toBurn <- vault as! @USDCFlow.Vault
-            let amount = toBurn.balance
+    //     /// Function for the bridge to burn tokens that are bridged back to Flow EVM
+    //     access(all) fun burn(vault: @{FungibleToken.Vault}) {
+    //         let toBurn <- vault as! @USDCFlow.Vault
+    //         let amount = toBurn.balance
 
-            // This function updates USDCFlow.totalSupply
-            Burner.burn(<-toBurn)
-        }
-    }
+    //         // This function updates USDCFlow.totalSupply
+    //         Burner.burn(<-toBurn)
+    //     }
+    // }
 
-    /// Sends the USDCFlow Minter to the Flow/EVM bridge
-    /// without giving any account access to the minter
-    /// before it is safely in the decentralized bridge
-    access(all) fun sendMinterToBridge(_ bridgeAddress: Address) {
-        let minter <- create Minter()
-        // borrow a reference to the bridge's configuration admin resource from public Capability
-        let bridgeAdmin = getAccount(bridgeAddress).capabilities.borrow<&FlowEVMBridgeConfig.Admin>(
-                FlowEVMBridgeConfig.adminPublicPath
-            ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
+    // /// Sends the USDCFlow Minter to the Flow/EVM bridge
+    // /// without giving any account access to the minter
+    // /// before it is safely in the decentralized bridge
+    // access(all) fun sendMinterToBridge(_ bridgeAddress: Address) {
+    //     let minter <- create Minter()
+    //     // borrow a reference to the bridge's configuration admin resource from public Capability
+    //     let bridgeAdmin = getAccount(bridgeAddress).capabilities.borrow<&FlowEVMBridgeConfig.Admin>(
+    //             FlowEVMBridgeConfig.adminPublicPath
+    //         ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
             
-        // sets the USDCFlow as the minter resource for all USDCFlow bridge requests
-        // prior to transferring the Minter, a TokenHandler will be set for USDCFlow during the bridge's initial
-        // configuration, setting the stage for this minter to be sent.
-        bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
-    }
+    //     // sets the USDCFlow as the minter resource for all USDCFlow bridge requests
+    //     // prior to transferring the Minter, a TokenHandler will be set for USDCFlow during the bridge's initial
+    //     // configuration, setting the stage for this minter to be sent.
+    //     bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
+    // }
 
     /// createEmptyVault
     ///
@@ -218,8 +218,8 @@ access(all) contract USDCFlow: FungibleToken, ViewResolver {
         self.VaultPublicPath = /public/usdcFlowMetadata
         self.ReceiverPublicPath = /public/usdcFlowReceiver
 
-        let minter <- create Minter()
-        self.account.storage.save(<-minter, to: /storage/usdcFlowMinter)
+        // let minter <- create Minter()
+        // self.account.storage.save(<-minter, to: /storage/usdcFlowMinter)
 
         // Create the Vault with the total supply of tokens and save it in storage.
         let vault <- create Vault(balance: self.totalSupply)
