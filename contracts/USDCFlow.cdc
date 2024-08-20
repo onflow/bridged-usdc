@@ -59,7 +59,7 @@ pub contract USDCFlow: FungibleToken, ViewResolver {
             case Type<FungibleTokenMetadataViews.FTDisplay>():
                 let media = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
-                        url: "https://commons.wikimedia.org/wiki/File:Circle_USDC_Logo.svg"
+                        url: "https://uploads-ssl.webflow.com/5f734f4dbd95382f4fdfa0ea/66bf87860866d1c10df323e2_USDC_FLOW.svg"
                     ),
                     mediaType: "image/svg+xml"
                 )
