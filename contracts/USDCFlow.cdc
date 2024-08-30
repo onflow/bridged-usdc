@@ -55,8 +55,8 @@ access(all) contract USDCFlow: FungibleToken, ViewResolver {
                 return FungibleTokenMetadataViews.FTDisplay(
                     name: "USDC (Flow)",
                     symbol: "USDCf",
-                    description: "This fungible token representation of Axelar USDC is bridged from Flow EVM.",
-                    externalURL: MetadataViews.ExternalURL("https://docs.axelar.dev/learn/axlusdc"),
+                    description: "This fungible token representation of Standard Bridged USDC is bridged from Flow EVM.",
+                    externalURL: MetadataViews.ExternalURL("https://github.com/circlefin/stablecoin-evm/blob/master/doc/bridged_USDC_standard.md"),
                     logos: medias,
                     socials: {},
                 )
