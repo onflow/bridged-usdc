@@ -20,16 +20,10 @@ transaction {
             to: USDCFlow.VaultStoragePath
         )
 
-        // Create a public capability to the Vault that only exposes
-        // the deposit function through the Receiver interface
         let receiver = signer.capabilities.storage.issue<&USDCFlow.Vault>(
             USDCFlow.VaultStoragePath
         )
         signer.capabilities.publish(receiver, at: USDCFlow.ReceiverPublicPath)
-        
-        // Create a public capability to the Vault that only exposes
-        // the balance field through the Balance interface
         signer.capabilities.publish(receiver, at: USDCFlow.VaultPublicPath)
-
     }
 }
