@@ -27,6 +27,7 @@
 		"FlowEVMBridgeConfig": {
 			"source": "./contracts/utility/FlowEVMBridgeConfig.cdc",
 			"aliases": {
+				"mainnet": "1e4aa0b87d10b141",
 				"testing": "0000000000000007",
 				"testnet": "dfc20aee650fcbdf"
 			}
@@ -34,6 +35,7 @@
 		"FlowEVMBridgeHandlerInterfaces": {
 			"source": "./contracts/utility/FlowEVMBridgeHandlerInterfaces.cdc",
 			"aliases": {
+				"mainnet": "1e4aa0b87d10b141",
 				"testing": "0000000000000007",
 				"testnet": "dfc20aee650fcbdf"
 			}
@@ -41,6 +43,7 @@
 		"FlowEVMBridgeHandlers": {
 			"source": "./contracts/utility/FlowEVMBridgeHandlers.cdc",
 			"aliases": {
+				"mainnet": "1e4aa0b87d10b141",
 				"testing": "0000000000000007",
 				"testnet": "dfc20aee650fcbdf"
 			}
@@ -110,7 +113,7 @@
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"mainnet": "access-001.mainnet25.nodes.onflow.org:9000",
 		"testing": "127.0.0.1:3569",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},

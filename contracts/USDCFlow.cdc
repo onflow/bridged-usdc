@@ -4,7 +4,6 @@ import "MetadataViews"
 import "Burner"
 import "ViewResolver"
 import "FlowEVMBridgeHandlerInterfaces"
-import "FlowEVMBridgeConfig"
 
 /// After the Crescendo migration, the `USDCFlow` smart contract
 /// will integrate directly with the Flow VM bridge to become
@@ -185,22 +184,6 @@ access(all) contract USDCFlow: FungibleToken, ViewResolver {
             // This function updates USDCFlow.totalSupply
             Burner.burn(<-toBurn)
         }
-    }
-
-    /// Sends the USDCFlow Minter to the Flow/EVM bridge
-    /// without giving any account access to the minter
-    /// before it is safely in the decentralized bridge
-    access(all) fun sendMinterToBridge(_ bridgeAddress: Address) {
-        let minter <- create Minter()
-        // borrow a reference to the bridge's configuration admin resource from public Capability
-        let bridgeAdmin = getAccount(bridgeAddress).capabilities.borrow<&FlowEVMBridgeConfig.Admin>(
-                FlowEVMBridgeConfig.adminPublicPath
-            ) ?? panic("FlowEVMBridgeConfig.Admin could not be referenced from ".concat(bridgeAddress.toString()))
-            
-        // sets the USDCFlow as the minter resource for all USDCFlow bridge requests
-        // prior to transferring the Minter, a TokenHandler will be set for USDCFlow during the bridge's initial
-        // configuration, setting the stage for this minter to be sent.
-        bridgeAdmin.setTokenHandlerMinter(targetType: Type<@USDCFlow.Vault>(), minter: <-minter)
     }
 
     /// createEmptyVault
