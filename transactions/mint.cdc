@@ -17,10 +17,17 @@ transaction(recipient: Address, amount: UFix64) {
 
         // Borrow a reference to the admin object
         self.tokenMinter = signer.storage.borrow<auth(FlowEVMBridgeHandlerInterfaces.Mint) &USDCFlow.Minter>(from: /storage/usdcFlowMinter)
-            ?? panic("Signer is not the minter")
+            ?? panic("Could not borrow a reference to the signer's USDCFlow.VaultMinter"
+                     .concat(" from the path /storage/usdcFlowMinter")
+                     .concat(". Make sure you are signing with the account that stores the minter."))
     
         self.tokenReceiver = getAccount(recipient).capabilities.borrow<&USDCFlow.Vault>(USDCFlow.ReceiverPublicPath)
-            ?? panic("Could not borrow receiver reference to the Vault")
+            ?? panic("Could not borrow a USDCFlow.Vault reference to the USDCFlow Vault in account"
+                    .concat(recipient.toString())
+                    .concat(". at the path ").concat(USDCFlow.ReceiverPublicPath.toString())
+                    .concat(". Make sure the account address is correct and that ")
+                    .concat("the account being queried has initialized with ")
+                    .concat("a USDCFlow Vault and valid capability."))
     }
 
     execute {
