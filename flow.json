@@ -129,7 +129,7 @@
 				"location": "./mainnet-test.pkey"
 			}
 		},
-		"mainnet-usdc-josh": {
+		"mainnet-usdc-kms": {
 			"address": "f1ab99c82dee3526",
 			"key": {
 				"type": "google-kms",
@@ -161,7 +161,7 @@
 	},
 	"deployments": {
 		"mainnet": {
-			"mainnet-usdc-josh": [
+			"mainnet-usdc-kms": [
 				"USDCFlow"
 			]
 		},
