@@ -5,10 +5,9 @@ import "Burner"
 import "ViewResolver"
 import "FlowEVMBridgeHandlerInterfaces"
 
-/// After the Crescendo migration, the `USDCFlow` smart contract
-/// will integrate directly with the Flow VM bridge to become
-/// the bridged version of Flow EVM USDC. These tokens will be backed
-/// by real USDC via Flow EVM.
+/// The `USDCFlow` smart contract is integrated directly
+/// with the Flow VM bridge as the bridged version of Flow EVM USDC
+/// which is itself the bridged version of official USDC from Ethereum Mainnet.
 
 /// This is not the official Circle USDC, only a bridged version
 /// that is still backed by official USDC on the other side of the bridge
