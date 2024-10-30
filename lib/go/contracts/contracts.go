@@ -26,8 +26,7 @@ var (
 )
 
 const (
-	filenameUSDCFlow      = "USDCFlow.cdc"
-	filenameUSDCFlowBasic = "utility/USDCFlowBasic.cdc"
+	filenameUSDCFlow = "USDCFlow.cdc"
 )
 
 // USDCFlow returns the USDCFlow contract.
@@ -53,13 +52,20 @@ func USDCFlow(
 
 // USDCFlowBasic returns the USDCFlowBasic contract.
 func USDCFlowBasic(ftAddr, metadataAddr, ftMetadataAddr, viewResolverAddr, burnerAddr string) []byte {
-	code := assets.MustAssetString(filenameUSDCFlowBasic)
+	code := assets.MustAssetString(filenameUSDCFlow)
 
 	code = placeholderFungibleToken.ReplaceAllString(code, fungibleTokenImport+"0x"+ftAddr)
 	code = placeholderMetadataViews.ReplaceAllString(code, metadataViewsImport+"0x"+metadataAddr)
 	code = placeholderFTMetadataViews.ReplaceAllString(code, ftMetadataViewsImport+"0x"+ftMetadataAddr)
 	code = placeholderViewResolver.ReplaceAllString(code, viewResolverImport+"0x"+viewResolverAddr)
 	code = placeholderBurner.ReplaceAllString(code, burnerImport+"0x"+burnerAddr)
+
+	bridgeInterfacesFullImport := regexp.MustCompile(`import \"FlowEVMBridgeHandlerInterfaces\"`)
+	code = bridgeInterfacesFullImport.ReplaceAllString(code, "")
+	minterDefinition := regexp.MustCompile(`Minter: FlowEVMBridgeHandlerInterfaces.TokenMinter {`)
+	code = minterDefinition.ReplaceAllString(code, "Minter {")
+	mintEntitlement := regexp.MustCompile(`access(FlowEVMBridgeHandlerInterfaces.Mint)`)
+	code = mintEntitlement.ReplaceAllString(code, "access(all)")
 
 	return []byte(code)
 }
