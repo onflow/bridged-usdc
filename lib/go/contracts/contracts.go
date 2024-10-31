@@ -64,8 +64,8 @@ func USDCFlowBasic(ftAddr, metadataAddr, ftMetadataAddr, viewResolverAddr, burne
 	code = bridgeInterfacesFullImport.ReplaceAllString(code, "")
 	minterDefinition := regexp.MustCompile(`Minter: FlowEVMBridgeHandlerInterfaces.TokenMinter {`)
 	code = minterDefinition.ReplaceAllString(code, "Minter {")
-	mintEntitlement := regexp.MustCompile(`access(FlowEVMBridgeHandlerInterfaces.Mint)`)
-	code = mintEntitlement.ReplaceAllString(code, "access(all)")
+	mintEntitlement := regexp.MustCompile(`FlowEVMBridgeHandlerInterfaces.Mint`)
+	code = mintEntitlement.ReplaceAllString(code, "all")
 
 	return []byte(code)
 }
